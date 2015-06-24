@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.OrganizationDao">
+
+   <resultMap id="organizationMap" type="java.util.Map">
+       <id column="ID" property="id"/>
+       <result column="PID" property="pid"/>
+       <result column="NAME" property="name"/>
+       <result column="DESCRIPTION" property="description"/>
+       <result column="ORDERS" property="orders"/>
+       <result column="LEVELS" property="levels"/>
+       <result column="ISPARENT" property="isParent"/>
+   </resultMap>
+
+    <resultMap id="userMap" type="java.util.Map">
+        <id column="ID" property="id"/>
+        <result column="LOGIN_NAME" property="loginName"/>
+        <result column="NAME" property="name"/>
+        <result column="DEPT_ID" property="deptId"/>
+        <result column="DEPT_NAME" property="deptName"/>
+        <result column="DESCRIPTION" property="description"/>
+        <result column="ORDERS" property="orders"/>
+    </resultMap>
+
+
+    <select id="selectDepartments" resultMap="organizationMap">
+        SELECT ID,PID,NAME,DESCRIPTION,ORDERS,LEVELS,DECODE(LEVELS,'0','true','1','false') ISPARENT FROM  V_ORGAN_TREE WHERE ID = #{value} OR PID = #{value}
+        ORDER BY LEVELS,ORDERS
+    </select>
+
+
+    <select id="selectSingleLeader" resultMap="userMap">
+        SELECT * FROM V_DEPT_SINGLE_LEADER WHERE DEPT_ID=#{value}
+    </select>
+
+
+    <select id="selectEmployee" resultMap="userMap">
+        SELECT * FROM V_USERDEP WHERE DEPT_ID=#{value} ORDER BY ORDERS
+    </select>
+
+</mapper>

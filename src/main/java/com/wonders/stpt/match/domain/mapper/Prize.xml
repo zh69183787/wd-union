@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.PrizeDao" >
+<!-- 查询的结果集 -->
+<resultMap type="MPrize" id="mPrizeMap">
+	<id property="prizeId"  column="PRIZE_ID"/>
+	<result property="prizeType" column="PRIZE_TYPE"/>
+    <result property="prizeSubType" column="PRIZE_SUB_TYPE"/>
+	<result property="prizeName" column="PRIZE_NAME"/>
+    <result property="quantity" column="QUANTITY"/>
+    <result property="personRange" column="PERSON_RANGE"/>
+	<result property="bonus" column="BONUS"/>
+	<result property="matchId" column="MATCH_ID"/>
+	<result property="creator" column="CREATOR"/>
+    <result property="createTime" column="CREATE_TIME"/>
+    <result property="updater" column="UPDATER"/>
+    <result property="updateTime" column="UPDATE_TIME"/>
+    <result property="removed" column="REMOVED"/>
+</resultMap>
+
+
+
+<sql id="prizefile">
+	PR.PRIZE_ID,
+	PR.PRIZE_TYPE,
+	PR.PRIZE_SUB_TYPE,
+	PR.PRIZE_NAME,
+	PR.PERSON_RANGE,
+	PR.QUANTITY,
+	PR.BONUS,
+	PR.MATCH_ID,
+	PR.CREATOR,
+	PR.CREATE_TIME,
+	PR.UPDATER,
+	PR.UPDATE_TIME,
+	PR.REMOVED
+</sql>
+<insert id="insert">
+	INSERT INTO M_PRIZE PR(<include refid="prizefile"/>)
+	values(#{prizeId,jdbcType=CHAR},#{prizeType,jdbcType=CHAR},#{prizeSubType,jdbcType=CHAR},#{prizeName,jdbcType=VARCHAR},
+    #{personRange,jdbcType=CHAR},#{quantity,jdbcType=NUMERIC},#{bonus,jdbcType=NUMERIC},#{matchId,jdbcType=CHAR},
+		#{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}
+	)
+	<selectKey keyColumn="PRIZE_ID" resultType="java.lang.String" order="BEFORE" keyProperty="prizeId">
+		SELECT SYS_GUID() FROM DUAL
+	</selectKey>
+</insert>
+<update id="update">
+	UPDATE M_PRIZE
+	<set>
+		<choose>
+			<when test="isDynamic==true"><!-- 动态更新 -->
+				<if test="entity.prizeType !=null and entity.prizeType !='' ">PRIZE_TYPE=#{entity.prizeType,jdbcType=CHAR},</if>
+                <if test="entity.prizeSubType !=null and entity.prizeSubType !='' ">PRIZE_SUB_TYPE=#{entity.prizeSubType,jdbcType=CHAR},</if>
+				<if test="entity.prizeName !=null and entity.prizeName !='' ">PRIZE_NAME=#{entity.prizeName,jdbcType=VARCHAR},</if>
+                <if test="entity.personRange !=null and entity.personRange !='' ">PERSON_RANGE=#{entity.personRange,jdbcType=CHAR},</if>
+				<if test="entity.quantity !=null and entity.quantity > 0 ">QUANTITY=#{entity.quantity,jdbcType=NUMERIC},</if>
+				<if test="entity.bonus !=null and entity.bonus !='' ">BONUS=#{entity.bonus,jdbcType=NUMERIC},</if>
+				<if test="entity.matchId !=null and entity.matchId !='' ">MATCH_ID=#{entity.matchId,jdbcType=CHAR},</if>
+				<if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+				<if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=CHAR},</if>
+			</when>
+			<otherwise>
+			PRIZE_TYPE=#{entity.prizeType,jdbcType=CHAR},
+            PRIZE_SUB_TYPE=#{entity.prizeSubType,jdbcType=CHAR},
+			PRIZE_NAME=#{entity.prizeName,jdbcType=VARCHAR},
+            PERSON_RANGE=#{entity.personRange,jdbcType=CHAR},
+			QUANTITY=#{entity.quantity,jdbcType=NUMERIC},
+			BONUS=#{entity.bonus,jdbcType=NUMERIC},
+			MATCH_ID=#{entity.matchId,jdbcType=CHAR},
+			UPDATER=#{entity.updater,jdbcType=VARCHAR},
+			REMOVED=#{entity.removed,jdbcType=CHAR},
+			</otherwise>
+		</choose>
+		UPDATE_TIME=sysdate
+	</set>
+	<where>
+		PRIZE_ID=#{entity.prizeId,jdbcType=CHAR}
+	</where>
+</update>
+<select id="select" parameterType="java.lang.String" resultMap="mPrizeMap">
+	SELECT <include refid="prizefile"/>
+	FROM M_PRIZE PR
+	<where>
+		<if test="prizeId != null and prizeId != '' ">
+				AND PRIZE_ID = #{prizeId}
+		</if>
+		<if test="prizeType != null and prizeType != '' ">
+				AND PRIZE_TYPE = #{prizeType}
+		</if>
+        <if test="prizeSubType != null and prizeSubType != '' ">
+            AND PRIZE_SUB_TYPE = #{prizeSubType}
+        </if>
+		<if test="prizeName != null and prizeName != '' ">
+				AND PRIZE_NAME = #{prizeName}
+		</if>
+        <if test="personRange != null and personRange !='' ">
+            AND PERSON_RANGE =#{personRange}
+        </if>
+		<if test="quantity != null and quantity > 0 ">
+				AND QUANTITY =#{quantity}
+		</if>
+		<if test="bonus != null and bonus != '' ">
+				AND BONUS =#{bonus}
+		</if>
+		<if test="matchId != null and matchId != '' ">
+				AND MATCH_ID = #{matchId}
+		</if>
+		<if test="creator!=null and creator!=''">
+                AND CREATOR = #{creator}
+        </if>
+        <if test="updater!=null and updater!=''">
+                AND UPDATER = #{updater}
+        </if>
+        <if test="removed!=null and removed!=''">
+                AND REMOVED = #{removed}
+        </if>
+	</where>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+
+
+
+</mapper>

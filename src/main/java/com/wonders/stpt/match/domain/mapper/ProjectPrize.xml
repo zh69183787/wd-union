@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.ProjectPrizeDao" >
+<!-- 查询的结果集 -->
+<resultMap type="MProjectPrize" id="mProjectPrizeMap">
+	<id property="projectPrizeId" column="PROJECT_PRIZE_ID"/>
+	<result property="projectType" column="PROJECT_TYPE"/>
+	<result property="projectContentType" column="PROJECT_CONTENT_TYPE"/>
+	<result property="prjectName" column="PRJECT_NAME"/>
+	<result property="department" column="DEPARTMENT"/>
+	<result property="responsibilePerson" column="RESPONSIBILE_PERSON"/>
+	<result property="telephone" column="TELEPHONE"/>
+	<result property="introduct" column="INTRODUCT"/>
+	<result property="departmentId" column="DEPARTMENT_ID"/>
+    <result property="prizeId" column="PRIZE_ID"/>
+	<result property="creator" column="CREATOR"/>
+    <result property="createTime" column="CREATE_TIME"/>
+    <result property="updater" column="UPDATER"/>
+    <result property="updateTime" column="UPDATE_TIME"/>
+    <result property="removed" column="REMOVED"/>
+    <association property="prize" resultMap="com.wonders.stpt.match.dao.PrizeDao.mPrizeMap">
+
+    </association>
+</resultMap>
+
+<sql id="projectPrizefile">
+	P.PROJECT_PRIZE_ID,
+	P.PROJECT_TYPE,
+	P.PROJECT_CONTENT_TYPE,
+	P.PRJECT_NAME,
+	P.DEPARTMENT,
+	P.RESPONSIBILE_PERSON,
+	P.TELEPHONE,
+	P.INTRODUCT,
+	P.DEPARTMENT_ID,
+	P.PRIZE_ID,
+	P.CREATOR,
+	P.CREATE_TIME,
+	P.UPDATER,
+	P.UPDATE_TIME,
+	P.REMOVED
+</sql>
+
+<insert id="insert">
+	INSERT INTO M_PROJECT_PRIZE P(<include refid="projectPrizefile"/>)
+	values(#{projectPrizeId,jdbcType=CHAR},#{projectType,jdbcType=VARCHAR},#{projectContentType,jdbcType=CHAR},
+		#{prjectName,jdbcType=VARCHAR},#{department,jdbcType=VARCHAR},#{responsibilePerson,jdbcType=VARCHAR},
+		#{telephone,jdbcType=VARCHAR},#{introduct,jdbcType=VARCHAR},#{departmentId,jdbcType=VARCHAR},#{prizeId,jdbcType=CHAR},
+		#{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}
+	)
+	<selectKey keyColumn="PROJECT_PRIZE_ID" resultType="java.lang.String" order="BEFORE" keyProperty="projectPrizeId">
+		SELECT SYS_GUID() FROM DUAL
+	</selectKey>
+</insert>
+
+<update id="update">
+	UPDATE M_PROJECT_PRIZE
+	<set>
+		<choose>
+			<when test="isDynamic==true"><!-- 动态更新 -->
+				<if test="entity.projectType !=null and entity.projectType !='' ">PROJECT_TYPE=#{entity.projectType,jdbcType=VARCHAR},</if>
+				<if test="entity.projectContentType !=null and entity.projectContentType !='' ">PROJECT_CONTENT_TYPE=#{entity.projectContentType,jdbcType=CHAR},</if>
+				<if test="entity.prjectName !=null and entity.prjectName !='' ">PRJECT_NAME=#{entity.prjectName,jdbcType=VARCHAR},</if>
+				<if test="entity.department !=null and entity.department !='' ">DEPARTMENT=#{entity.department,jdbcType=VARCHAR},</if>
+				<if test="entity.responsibilePerson !=null and entity.responsibilePerson !='' ">RESPONSIBILE_PERSON=#{entity.responsibilePerson,jdbcType=VARCHAR},</if>
+				<if test="entity.telephone !=null and entity.telephone !='' ">TELEPHONE=#{entity.telephone,jdbcType=VARCHAR},</if>
+				<if test="entity.introduct !=null and entity.introduct !='' ">INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},</if>
+				<if test="entity.departmentId !=null and entity.departmentId !='' ">DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},</if>
+                <if test="entity.prizeId !=null and entity.prizeId !='' ">PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},</if>
+				<if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+				<if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=CHAR},</if>
+			</when>
+			<otherwise>
+			PROJECT_TYPE=#{entity.projectType,jdbcType=VARCHAR},
+			PROJECT_CONTENT_TYPE=#{entity.projectContentType,jdbcType=CHAR},
+			PRJECT_NAME=#{entity.prjectName,jdbcType=VARCHAR},
+			DEPARTMENT=#{entity.department,jdbcType=VARCHAR},
+			RESPONSIBILE_PERSON=#{entity.responsibilePerson,jdbcType=VARCHAR},
+			TELEPHONE=#{entity.telephone,jdbcType=VARCHAR},
+			INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},
+			DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+                PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},
+			UPDATER=#{entity.updater,jdbcType=VARCHAR},
+			REMOVED=#{entity.removed,jdbcType=VARCHAR},
+			</otherwise>
+		</choose>
+		UPDATE_TIME=sysdate
+	</set>
+	<where>
+		PROJECT_PRIZE_ID=#{entity.projectPrizeId,jdbcType=VARCHAR}
+	</where>
+</update>
+
+<select id="select" parameterType="java.lang.String" resultMap="mProjectPrizeMap">
+	SELECT <include refid="projectPrizefile"/>,MP.MATCH_ID,MP.PRIZE_NAME
+	FROM M_PROJECT_PRIZE P   LEFT JOIN M_PRIZE MP ON MP.PRIZE_ID = P.PRIZE_ID
+	<where>
+		<if test="projectPrizeId != null and projectPrizeId != '' ">
+				AND PROJECT_PRIZE_ID like #{projectPrizeId}
+		</if>
+		<if test="projectType != null and projectType != '' ">
+				AND PROJECT_TYPE = #{projectType}
+		</if>
+		<if test="projectContentType != null and projectContentType != '' ">
+				AND PROJECT_CONTENT_TYPE = #{projectContentType}
+		</if>
+		<if test="prjectName != null and prjectName != '' ">
+				<bind name="prjectNameParam" value="_parameter.getPrjectName()+'%'"/>
+				AND PRJECT_NAME like #{prjectNameParam}
+		</if>
+		<if test="department != null and department != '' ">
+				<bind name="departmentParam" value="_parameter.getDepartment()+'%'"/>
+				AND DEPARTMENT like #{departmentParam}
+		</if>
+		<if test="responsibilePerson != null and responsibilePerson != '' ">
+				AND RESPONSIBILE_PERSON = #{responsibilePerson}
+		</if>
+		<if test="telephone != null and telephone != '' ">
+				AND TELEPHONE = #{telephone}
+		</if>
+		<if test="introduct != null and introduct != '' ">
+				<bind name="introductParam" value="_parameter.getIntroduct()+'%'"/>
+				AND INTRODUCT like #{introductParam}
+		</if>
+		<if test="departmentId != null and departmentId != '' ">
+				AND P.DEPARTMENT_ID = #{departmentId}
+		</if>
+
+        <if test="prizeId != null and prizeId != '' ">
+            AND P.PRIZE_ID = #{prizeId}
+        </if>
+		<if test="creator!=null and creator!=''">
+                AND P.CREATOR = #{creator}
+        </if>
+        <if test="updater!=null and updater!=''">
+                AND P.UPDATER = #{updater}
+        </if>
+        <if test="removed!=null and removed!=''">
+                AND P.REMOVED = #{removed}
+        </if>
+        <if test="prize!=null and prize.matchId!=null and prize.matchId!=''">
+            AND MP.MATCH_ID = #{prize.matchId}
+        </if>
+	</where>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+</mapper>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.MPersonalPrizeDao" >
+<!-- 查询的结果集 -->
+<resultMap type="MPersonalPrize" id="mPersonalPrizeMap">
+        <id property="personalPrizeId" column="PERSONAL_PRIZE_ID"/>
+        <result property="name" column="NAME"/>
+        <result property="gender" column="GENDER"/>
+        <result property="brithday" column="BRITHDAY"/>
+        <result property="political" column="POLITICAL"/>
+        <result property="position" column="POSITION"/>
+        <result property="department" column="DEPARTMENT"/>
+        <result property="prizeInfo" column="PRIZE_INFO"/>
+        <result property="introduct" column="INTRODUCT"/>
+        <result property="departmentId" column="DEPARTMENT_ID"/>
+        <result property="prizeId" column="PRIZE_ID"/>
+        <result property="creator" column="CREATOR"/>
+        <result property="updater" column="UPDATER"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+        <result property="removed" column="REMOVED"/>
+        <association property="prize" resultMap="com.wonders.stpt.match.dao.PrizeDao.mPrizeMap">
+
+        </association>
+    </resultMap>
+	<!-- 实体所有属性 -->
+	<sql id="commonFieldSql">
+		M.PERSONAL_PRIZE_ID,
+		M.NAME,
+		M.GENDER,
+		M.BRITHDAY,
+		M.POLITICAL,
+		M.POSITION,
+		M.DEPARTMENT,
+		M.PRIZE_INFO,
+		M.INTRODUCT,
+		M.DEPARTMENT_ID,
+	    M.PRIZE_ID,
+		M.CREATOR,
+		M.CREATE_TIME,
+		M.UPDATER,
+		M.UPDATE_TIME,
+		M.REMOVED
+	</sql>
+	<!-- 添加 -->
+	<insert id="insert">
+	INSERT INTO M_PERSONAL_PRIZE M(<include refid="commonFieldSql"/>)
+		
+		values(#{personalPrizeId,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{gender,jdbcType=CHAR},
+		#{brithday,jdbcType=DATE},#{political,jdbcType=VARCHAR},#{position,jdbcType=VARCHAR},
+		#{department,jdbcType=VARCHAR},#{prizeInfo,jdbcType=VARCHAR},#{introduct,jdbcType=VARCHAR},
+		#{departmentId,jdbcType=VARCHAR},#{prizeId,jdbcType=CHAR},#{creator,jdbcType=VARCHAR},
+            sysdate,
+            #{updater,jdbcType=VARCHAR},
+            sysdate,
+            #{removed,jdbcType=VARCHAR}
+		)
+		<!-- 在执行添加前先产生一个主键值并在执行后返回当前插入记录的主键 -->
+		<selectKey resultType="java.lang.String" keyColumn="PERSONAL_PRIZE_ID" order="BEFORE" keyProperty="personalPrizeId">
+			SELECT SYS_GUID() FROM DUAL
+		</selectKey>
+	</insert>
+	<!-- 更新sql -->
+	<update id="update">
+		UPDATE M_PERSONAL_PRIZE 
+		<set>
+			<choose>
+				<when test="isDynamic==true"><!--动态更新   有值就更新  -->
+					<if test="entity.name !=null and entity.name !='' ">NAME=#{entity.name,jdbcType=VARCHAR},</if>
+					<if test="entity.gender !=null and entity.gender !='' ">GENDER=#{entity.gender,jdbcType=VARCHAR},</if>
+					<if test="entity.brithday !=null and entity.brithday !='' ">BRITHDAY=#{entity.brithday,jdbcType=DATE},</if>
+					<if test="entity.political !=null and entity.political !='' ">POLITICAL=#{entity.political,jdbcType=VARCHAR},</if>
+					<if test="entity.position !=null and entity.position !='' ">POSITION=#{entity.position,jdbcType=VARCHAR},</if>
+					<if test="entity.department !=null and entity.department !='' ">DEPARTMENT=#{entity.department,jdbcType=VARCHAR},</if>
+					<if test="entity.prizeInfo !=null and entity.prizeInfo !='' ">PRIZE_INFO=#{entity.prizeInfo,jdbcType=VARCHAR},</if>
+					<if test="entity.introduct !=null and entity.introduct !='' ">INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},</if>
+					<if test="entity.departmentId !=null and entity.departmentId !='' ">DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},</if>
+                    <if test="entity.prizeId !=null and entity.prizeId !='' ">PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},</if>
+					<if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+					<if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=VARCHAR},</if>
+				</when>
+				<otherwise>
+				NAME=#{entity.name,jdbcType=VARCHAR},
+				GENDER=#{entity.gender,jdbcType=VARCHAR},
+				BRITHDAY=#{entity.brithday,jdbcType=DATE},
+				POLITICAL=#{entity.political,jdbcType=VARCHAR},
+				POSITION=#{entity.position,jdbcType=VARCHAR},
+				DEPARTMENT=#{entity.department,jdbcType=VARCHAR},
+				PRIZE_INFO=#{entity.prizeInfo,jdbcType=VARCHAR},
+				INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},
+				DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+                    PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},
+				UPDATER=#{entity.updater,jdbcType=VARCHAR},
+				REMOVED=#{entity.removed,jdbcType=VARCHAR},
+				</otherwise>
+			</choose>
+			UPDATE_TIME=sysdate
+		</set>
+		<where>
+			PERSONAL_PRIZE_ID=#{entity.personalPrizeId,jdbcType=VARCHAR}
+		</where>
+	</update>
+	<!-- 查询记录 -->
+	<select id="select" parameterType="java.lang.String" resultMap="mPersonalPrizeMap">
+		SELECT <include refid="commonFieldSql"/>,P.MATCH_ID,P.PRIZE_NAME
+		FROM M_PERSONAL_PRIZE M LEFT JOIN M_PRIZE P ON M.PRIZE_ID = P.PRIZE_ID
+		<where>
+			<if test="personalPrizeId != null and personalPrizeId != '' ">
+				AND PERSONAL_PRIZE_ID like #{personalPrizeId}
+			</if>
+			<if test="name != null and name != '' ">
+				<bind name="nameParam" value="_parameter.getName()+'%'"/>
+				AND NAME like #{nameParam}
+			</if>
+			<if test="gender != null and gender != '' ">
+				AND GENDER=#{gender}
+			</if>
+			<if test="brithday != null">
+				AND BRITHDAY >= #{brithday}
+			</if>
+			<if test="political != null and political != '' ">
+				AND POLITICAL = #{political}
+			</if>
+			<if test="position != null and position != '' ">
+				AND POSITION = #{position}
+			</if>
+			<if test="department != null and department != '' ">
+				AND DEPARTMENT = #{department}
+			</if>
+			<if test="prizeInfo != null and prizeInfo != '' ">
+				AND PRIZE_INFO = #{prizeInfo}
+			</if>
+			<if test="introduct != null and introduct != '' ">
+				AND INTRODUCT = #{introduct}
+			</if>
+			<if test="departmentId != null and departmentId != '' ">
+				AND M.DEPARTMENT_ID = #{departmentId}
+			</if>
+
+            <if test="prizeId != null and prizeId != '' ">
+                AND M.PRIZE_ID = #{prizeId}
+            </if>
+			<if test="creator!=null and creator!=''">
+                AND M.CREATOR = #{creator}
+            </if>
+            <if test="updater!=null and updater!=''">
+                AND M.UPDATER = #{updater}
+            </if>
+            <if test="removed!=null and removed!=''">
+                AND M.REMOVED = #{removed}
+            </if>
+            <if test="prize!=null and prize.matchId!=null and prize.matchId!=''">
+                AND P.MATCH_ID = #{prize.matchId}
+            </if>
+		</where>
+		ORDER BY UPDATE_TIME DESC
+	</select>
+	
+	
+</mapper>

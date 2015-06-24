@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.ApplicantDepartmentDao" >
+<!-- 查询的结果集 -->
+<resultMap type="MApplicantDepartment" id="mApplicantDepartmentMap">
+	<id property="applicantDepartmentId" column="APPLICANT_DEPARTMENT_ID"/>
+	<result property="departmentId" column="DEPARTMENT_ID"/>
+	<result property="departmentName" column="DEPARTMENT_NAME"/>
+	<result property="prizeId" column="PRIZE_ID"/>
+	<result property="creator" column="CREATOR"/>
+    <result property="createTime" column="CREATE_TIME"/>
+    <result property="updater" column="UPDATER"/>
+    <result property="updateTime" column="UPDATE_TIME"/>
+    <result property="removed" column="REMOVED"/>
+</resultMap>
+	<sql id="applicantDepartmentfile">
+		PD.APPLICANT_DEPARTMENT_ID,
+		PD.DEPARTMENT_ID,
+		PD.DEPARTMENT_NAME,
+		PD.PRIZE_ID,
+		PD.CREATOR,
+		PD.CREATE_TIME,
+		PD.UPDATER,
+		PD.UPDATE_TIME,
+		PD.REMOVED
+	</sql>
+
+<insert id="insert">
+	INSERT INTO M_APPLICANT_DEPARTMENT PD(<include refid="applicantDepartmentfile"/>)
+	values(#{applicantDepartmentId,jdbcType=CHAR},#{departmentId,jdbcType=VARCHAR},#{departmentName,jdbcType=VARCHAR},
+		#{prizeId,jdbcType=CHAR},#{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}
+	)
+	<selectKey resultType="java.lang.String" keyColumn="APPLICANT_DEPARTMENT_ID" order="BEFORE" keyProperty="applicantDepartmentId">
+		SELECT SYS_GUID() FROM DUAL
+	</selectKey>
+</insert>
+<update id="update">
+	UPDATE M_APPLICANT_DEPARTMENT
+	<set>
+		<choose>
+			<when test="isDynamic==true"><!-- 动态更新 -->
+				<if test="entity.departmentId !=null and entity.departmentId !='' ">DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},</if>
+				<if test="entity.departmentName !=null and entity.departmentName !='' ">DEPARTMENT_NAME=#{entity.departmentName,jdbcType=VARCHAR},</if>
+				<if test="entity.prizeId !=null and entity.prizeId !='' ">PRIZE_ID=#{entity.prizeId,jdbcType=VARCHAR},</if>
+				<if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+				<if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=CHAR},</if>
+			</when>
+			<otherwise>
+			DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+			DEPARTMENT_NAME=#{entity.departmentName,jdbcType=VARCHAR},
+			PRIZE_ID=#{entity.prizeId,jdbcType=VARCHAR},
+			UPDATER=#{entity.updater,jdbcType=VARCHAR},
+			REMOVED=#{entity.removed,jdbcType=CHAR},
+			</otherwise>
+		</choose>
+		UPDATE_TIME=sysdate
+	</set>
+	<where>
+		APPLICANT_DEPARTMENT_ID=#{applicantDepartmentId,jdbcType=CHAR}
+	</where>
+</update>
+
+<select id="select" parameterType="java.lang.String" resultMap="mApplicantDepartmentMap">
+	SELECT <include refid="applicantDepartmentfile"/>
+	FROM M_APPLICANT_DEPARTMENT PD
+	<where>
+		<if test="applicantDepartmentId != null and applicantDepartmentId != '' ">
+				AND APPLICANT_DEPARTMENT_ID like #{applicantDepartmentId}
+		</if>
+		<if test="departmentId != null and departmentId != '' ">
+				AND DEPARTMENT_ID like #{departmentId}
+		</if>
+		<if test="departmentName != null and departmentName != '' ">
+			<bind name="departmentNameParam" value="_parameter.getDepartmentName()+'%'"/>
+				AND DEPARTMENT_NAME like #{departmentNameParam}
+		</if>
+		<if test="prizeId != null and prizeId != '' ">
+				AND PRIZE_ID like #{prizeId}
+		</if>
+		<if test="creator!=null and creator!=''">
+                AND CREATOR = #{creator}
+        </if>
+        <if test="updater!=null and updater!=''">
+                AND UPDATER = #{updater}
+        </if>
+        <if test="removed!=null and removed!=''">
+                AND REMOVED = #{removed}
+        </if>
+	</where>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+    <delete id="deleteByPrizeId">
+        DELETE FROM M_APPLICANT_DEPARTMENT WHERE PRIZE_ID = #{value}
+    </delete>
+
+</mapper>

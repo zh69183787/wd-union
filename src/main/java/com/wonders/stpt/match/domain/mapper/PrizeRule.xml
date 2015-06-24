@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.PrizeRuleDao">
+
+    <resultMap type="PrizeRule" id="prizeRuleMap">
+        <id property="prizeRuleId" column="PRIZE_RULE_ID"/>
+        <result property="prizeType" column="PRIZE_TYPE"/>
+        <result property="prizeSubType" column="PRIZE_SUB_TYPE"/>
+        <result property="personRange" column="PERSON_RANGE"/>
+        <result property="maxBonus" column="MAX_BONUS"/>
+        <result property="minBonus" column="MIN_BONUS"/>
+        <result property="creator" column="CREATOR"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="updater" column="UPDATER"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+        <result property="removed" column="REMOVED"/>
+    </resultMap>
+
+    <sql id="commonFieldSql">
+        PRIZE_RULE_ID,
+        PRIZE_TYPE,
+        PRIZE_SUB_TYPE,
+        PERSON_RANGE,
+        MAX_BONUS,
+        MIN_BONUS,
+        CREATOR,
+        CREATE_TIME,
+        UPDATER,
+        UPDATE_TIME,
+        REMOVED
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO M_PRIZE_RULE (<include refid="commonFieldSql"/>)
+        values(#{prizeRuleId,jdbcType=CHAR},#{prizeType,jdbcType=CHAR},#{prizeSubType,jdbcType=CHAR},
+        #{personRange,jdbcType=CHAR},#{maxBonus,jdbcType=NUMERIC},#{minBonus,jdbcType=NUMERIC},
+        #{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}
+        )
+        <selectKey keyColumn="PRIZE_RULE_ID" resultType="java.lang.String" order="BEFORE" keyProperty="prizeRuleId">
+            SELECT SYS_GUID() FROM DUAL
+        </selectKey>
+    </insert>
+
+    <update id="update">
+        UPDATE M_PRIZE_RULE
+        <set>
+            <choose>
+                <when test="isDynamic==true"><!-- 动态更新 -->
+                    <if test="entity.prizeType !=null and entity.prizeType !='' ">PRIZE_TYPE=#{entity.prizeType,jdbcType=CHAR},</if>
+                    <if test="entity.prizeSubType !=null and entity.prizeSubType !='' ">PRIZE_SUB_TYPE=#{entity.prizeSubType,jdbcType=CHAR},</if>
+                    <if test="entity.personRange !=null and entity.personRange != '' ">PERSON_RANGE=#{entity.personRange,jdbcType=CHAR},</if>
+                    <if test="entity.maxBonus !=null and entity.maxBonus > 0 ">MAX_BONUS=#{entity.maxBonus,jdbcType=NUMERIC},</if>
+                    <if test="entity.minBonus !=null and entity.minBonus > 0 ">MIN_BONUS=#{entity.minBonus,jdbcType=NUMERIC},</if>
+                    <if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+                    <if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=CHAR},</if>
+                </when>
+                <otherwise>
+                    PRIZE_TYPE=#{entity.prizeType,jdbcType=CHAR},
+                    PRIZE_SUB_TYPE=#{entity.prizeSubType,jdbcType=CHAR},
+                    PERSON_RANGE=#{entity.personRange,jdbcType=CHAR},
+                    MAX_BONUS=#{entity.maxBonus,jdbcType=NUMERIC},
+                    MIN_BONUS=#{entity.minBonus,jdbcType=NUMERIC},
+                    UPDATER=#{entity.updater,jdbcType=VARCHAR},
+                    REMOVED=#{entity.removed,jdbcType=CHAR},
+                </otherwise>
+            </choose>
+            UPDATE_TIME=sysdate
+        </set>
+        <where>
+            PRIZE_RULE_ID=#{entity.prizeRuleId,jdbcType=CHAR}
+        </where>
+    </update>
+
+
+    <delete id="delete">
+        DELETE FROM M_PRIZE_RULE WHERE PRIZE_RULE_ID IN
+        <foreach item="item" index="index" collection="list"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="select" resultMap="prizeRuleMap">
+        SELECT <include refid="commonFieldSql"/>
+        FROM M_PRIZE_RULE
+        <where>
+            <if test="prizeRuleId != null and prizeRuleId != '' ">
+                AND PRIZE_RULE_ID = #{prizeRuleId}
+            </if>
+            <if test="prizeType != null and prizeType != '' ">
+                AND PRIZE_TYPE = #{prizeType}
+            </if>
+            <if test="prizeSubType != null and prizeSubType != '' ">
+                AND PRIZE_SUB_TYPE = #{prizeSubType}
+            </if>
+            <if test="personRange != null and personRange != '' ">
+                AND PERSON_RANGE =#{personRange}
+            </if>
+            <if test="maxBonus != null and maxBonus > 0 ">
+                AND MAX_BONUS =#{maxBonus}
+            </if>
+            <if test="minBonus != null and minBonus > 0 ">
+                AND MIN_BONUS =#{minBonus}
+            </if>
+            <if test="creator!=null and creator!=''">
+                AND CREATOR = #{creator}
+            </if>
+            <if test="updater!=null and updater!=''">
+                AND UPDATER = #{updater}
+            </if>
+            <if test="removed!=null and removed!=''">
+                AND REMOVED = #{removed}
+            </if>
+        </where>
+        ORDER BY UPDATE_TIME DESC
+    </select>
+</mapper>

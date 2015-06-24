@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.MatchThemeDao" >
+    <resultMap type="MatchTheme" id="matchThemeMap">
+        <id property="matchThemeId" column="MATCH_THEME_ID"/>
+        <result property="themeName" column="THEME_NAME"/>
+        <result property="year" column="YEAR"/>
+        <result property="creator" column="CREATOR"/>
+        <result property="updater" column="UPDATER"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+        <result property="removed" column="REMOVED"/>
+    </resultMap>
+	<!-- 新增 -->
+	<insert id="insert">
+		INSERT INTO M_MATCH_THEME(MATCH_THEME_ID,THEME_NAME,YEAR,CREATOR,
+    		CREATE_TIME,
+    		UPDATER,
+    		UPDATE_TIME,
+    		REMOVED)
+    	VALUES(SYS_GUID(),#{themeName,jdbcType=VARCHAR},#{year,jdbcType=NUMERIC},
+    		#{creator,jdbcType=VARCHAR},
+            sysdate,
+            #{updater,jdbcType=VARCHAR},
+            sysdate,
+            #{removed,jdbcType=VARCHAR})
+	</insert>
+
+	<update id="update">
+		UPDATE M_MATCH_THEME
+		<set>
+			<choose>
+				<when test="isDynamic == true"><!-- 动态更新 -->
+					<if test="entity.themeName !=null and entity.themeName !='' ">THEME_NAME=#{entity.themeName,jdbcType=VARCHAR},</if>
+					<if test="entity.year != null and entity.year !='' ">YEAR=#{entity.year,jdbcType=NUMERIC},</if>
+					<if test="entity.updater != null and entity.updater !='' " >UPDATER=#{entity.updater,jdbcType=CHAR},</if>
+                    <if test="entity.removed != null and entity.removed !='' " >REMOVED=#{entity.removed,jdbcType=CHAR},</if>
+                </when>
+				<otherwise><!-- 全部更新 -->
+					THEME_NAME=#{entity.themeName,jdbcType=VARCHAR},
+					YEAR=#{entity.year,jdbcType=NUMERIC},
+					UPDATER=#{entity.updater,jdbcType=CHAR},
+					REMOVED=#{entity.removed,jdbcType=CHAR},
+				</otherwise>
+			</choose>
+			UPDATE_TIME=sysdate
+		</set>
+		<where>
+			MATCH_THEME_ID=#{entity.matchThemeId,jdbcType=VARCHAR}
+		</where>
+	</update>
+
+
+
+    <select id="select" parameterType="java.lang.String" resultMap="matchThemeMap">
+
+        SELECT * FROM M_MATCH_THEME
+        <where>
+        	<if test="matchThemeId!=null and matchThemeId!=''">
+                AND MATCH_THEME_ID LIKE #{matchThemeId}
+            </if>
+            <if test="themeName!=null and themeName!=''">
+                <bind name="themeNameParam" value="_parameter.getThemeName()+'%'"/>
+                AND THEME_NAME LIKE #{themeNameParam}
+            </if>
+            <if test="year!=null and year!=0">
+                 AND YEAR = #{year}
+            </if>
+            <if test="creator!=null and creator!=''">
+                AND CREATOR = #{creator}
+            </if>
+            <if test="updater!=null and updater!=''">
+                AND UPDATER = #{updater}
+            </if>
+            <if test="removed!=null and removed!=''">
+                AND REMOVED = #{removed}
+            </if>
+        </where>
+    </select>
+</mapper>

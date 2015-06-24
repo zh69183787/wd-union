@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.MTeamPrizeDao" >
+<!-- 查询的结果集 -->
+<resultMap type="MTeamPrize" id="mTeamPrizeMap">
+	<id property="teamPrizeId" column="TEAM_PRIZE_ID"/>
+	<result property="name" column="NAME"/>
+	<result property="persons" column="PERSONS"/>
+	<result property="responsibilePerson" column="RESPONSIBILE_PERSON"/>
+	<result property="telephone" column="TELEPHONE"/>
+	<result property="introduct" column="INTRODUCT"/>
+	<result property="departmentId" column="DEPARTMENT_ID"/>
+    <result property="prizeId" column="PRIZE_ID"/>
+	<result property="creator" column="CREATOR"/>
+    <result property="createTime" column="CREATE_TIME"/>
+    <result property="updater" column="UPDATER"/>
+    <result property="updateTime" column="UPDATE_TIME"/>
+    <result property="removed" column="REMOVED"/>
+    <association property="prize" resultMap="com.wonders.stpt.match.dao.PrizeDao.mPrizeMap">
+
+    </association>
+</resultMap>
+<sql id="teamfile">
+	T.TEAM_PRIZE_ID,
+	T.NAME,
+	T.PERSONS,
+	T.RESPONSIBILE_PERSON,
+	T.TELEPHONE,
+	T.INTRODUCT,
+	T.DEPARTMENT_ID,
+	T.PRIZE_ID,
+	T.CREATOR,
+	T.CREATE_TIME,
+	T.UPDATER,
+	T.UPDATE_TIME,
+	T.REMOVED
+</sql>
+<!-- 新增 -->
+<insert id="insert">
+	INSERT INTO M_TEAM_PRIZE T(<include refid="teamfile"/>)
+	values(
+		#{teamPrizeId,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{persons,jdbcType=NUMERIC},
+		#{responsibilePerson,jdbcType=VARCHAR},
+		#{telephone,jdbcType=VARCHAR},
+		#{introduct,jdbcType=VARCHAR},
+		#{departmentId,jdbcType=VARCHAR},
+    #{prizeId,jdbcType=CHAR},
+		#{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}   
+	)
+	<selectKey keyColumn="TEAM_PRIZE_ID" resultType="java.lang.String" order="BEFORE" keyProperty="teamPrizeId">
+            	SELECT SYS_GUID() FROM DUAL
+    </selectKey>
+</insert>
+<!-- 更新 -->
+<update id="update">
+	UPDATE M_TEAM_PRIZE 
+	<set>
+		<choose>
+			<when test="isDynamic==true"><!-- 动态更新 -->
+				<if test="entity.name !=null and entity.name !='' ">NAME=#{entity.name,jdbcType=VARCHAR},</if>
+				<if test="entity.persons !=null and entity.persons !='' ">PERSONS=#{entity.persons,jdbcType=VARCHAR},</if>
+				<if test="entity.responsibilePerson !=null and entity.responsibilePerson !='' ">RESPONSIBILE_PERSON=#{entity.responsibilePerson,jdbcType=VARCHAR},</if>
+				<if test="entity.telephone !=null and entity.telephone !='' ">TELEPHONE=#{entity.telephone,jdbcType=VARCHAR},</if>
+				<if test="entity.introduct !=null and entity.introduct !='' ">INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},</if>
+				<if test="entity.departmentId !=null and entity.departmentId !='' ">DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},</if>
+                <if test="entity.prizeId !=null and entity.prizeId !='' ">PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},</if>
+				<if test="entity.updater !=null and entity.updater !='' ">UPDATER=#{entity.updater,jdbcType=VARCHAR},</if>
+				<if test="entity.removed !=null and entity.removed !='' ">REMOVED=#{entity.removed,jdbcType=VARCHAR},</if>
+			</when>
+			<otherwise>
+			NAME=#{entity.name,jdbcType=VARCHAR},
+			PERSONS=#{entity.persons,jdbcType=VARCHAR},
+			RESPONSIBILE_PERSON=#{entity.responsibilePerson,jdbcType=VARCHAR},
+			TELEPHONE=#{entity.telephone,jdbcType=VARCHAR},
+			INTRODUCT=#{entity.introduct,jdbcType=VARCHAR},
+			DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+                PRIZE_ID=#{entity.prizeId,jdbcType=CHAR},
+			UPDATER=#{entity.updater,jdbcType=VARCHAR},
+			REMOVED=#{entity.removed,jdbcType=VARCHAR},
+			</otherwise>
+		</choose>
+		UPDATE_TIME=sysdate
+	</set>
+	<where>
+		TEAM_PRIZE_ID=#{entity.teamPrizeId,jdbcType=VARCHAR}
+	</where>
+</update>
+
+<select id="select" parameterType="java.lang.String" resultMap="mTeamPrizeMap">
+	SELECT <include refid="teamfile"/>,P.MATCH_ID,P.PRIZE_NAME
+	FROM M_TEAM_PRIZE T LEFT JOIN M_PRIZE P ON T.PRIZE_ID = P.PRIZE_ID
+	<where>
+		<if test="teamPrizeId != null and teamPrizeId != '' ">
+				AND TEAM_PRIZE_ID like #{teamPrizeId}
+		</if>
+		<if test="name != null and name != '' ">
+				<bind name="nameParam" value="_parameter.getName()+'%'"/>
+				AND NAME like #{nameParam}
+		</if>
+		<if test="persons != null and persons != '' ">
+				AND PERSONS = #{persons}
+		</if>
+		<if test="responsibilePerson != null and responsibilePerson != '' ">
+				AND RESPONSIBILE_PERSON = #{responsibilePerson}
+		</if>
+		<if test="telephone != null and telephone != '' ">
+				AND TELEPHONE = #{telephone}
+		</if>
+		<if test="introduct != null and introduct != '' ">
+			<bind name="introductParam" value="_parameter.getIntroduct()+'%'"/>
+				AND INTRODUCT like #{introductParam}
+		</if>
+		<if test="departmentId != null and departmentId != '' ">
+				AND DEPARTMENT_ID = #{departmentId}
+		</if>
+
+        <if test="prizeId != null and prizeId != '' ">
+            AND T.PRIZE_ID = #{prizeId}
+        </if>
+		<if test="creator!=null and creator!=''">
+                AND T.CREATOR = #{creator}
+        </if>
+        <if test="updater!=null and updater!=''">
+                AND T.UPDATER = #{updater}
+        </if>
+        <if test="removed!=null and removed!=''">
+                AND T.REMOVED = #{removed}
+        </if>
+        <if test="prize!=null and prize.matchId!=null and prize.matchId!=''">
+            AND P.MATCH_ID = #{prize.matchId}
+        </if>
+	</where>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+
+</mapper>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonders.stpt.match.dao.MatchDao">
+
+    <resultMap type="Match" id="matchMap">
+        <id property="matchId" column="MATCH_ID"/>
+        <result property="matchName" column="MATCH_NAME"/>
+        <result property="matchType" column="MATCH_TYPE"/>
+        <result property="beginDate" column="BEGIN_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="departmentId" column="DEPARTMENT_ID"/>
+        <result property="department" column="DEPARTMENT"/>
+        <result property="operatorId" column="OPERATOR_ID"/>
+        <result property="operator" column="OPERATOR"/>
+        <result property="status" column="STATUS"/>
+        <result property="matchThemeId" column="MATCH_THEME_ID"/>
+        <result property="creator" column="CREATOR"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="updater" column="UPDATER"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+        <result property="removed" column="REMOVED"/>
+
+        <association property="matchTheme"
+                     resultMap="com.wonders.stpt.match.dao.MatchThemeDao.matchThemeMap"></association>
+
+    </resultMap>
+
+    <resultMap type="Match" id="matchDetailMap" extends="matchMap">
+        <collection property="attachments" notNullColumn="ATTACHMENT_ID" ofType="Attachment"
+                    resultMap="com.wonders.stpt.match.dao.AttachmentDao.attachmentMap">
+        </collection>
+    </resultMap>
+
+    <sql id="validAttachmentSql">
+        <bind name="isRemoved" value="0"/>
+        SELECT ATTACHMENT_ID,ATTACH_NAME,ATTACH_URL,OBJECT_ID,ATTACH_SIZE,ATTACH_TYPE,ATTACH_EXT_NAME FROM M_MATCH_ATTACHMENT WHERE REMOVED = #{isRemoved}
+    </sql>
+
+    <sql id="commonFieldSql">
+            M.MATCH_ID,
+    		M.MATCH_NAME,
+    		M.MATCH_TYPE,
+    		M.BEGIN_DATE,
+    		M.END_DATE,
+    		M.DEPARTMENT_ID,
+    		M.DEPARTMENT,
+    		M.OPERATOR_ID,
+    		M.OPERATOR,
+    		M.STATUS,
+    		M.MATCH_THEME_ID,
+    		M.CREATOR,
+    		M.CREATE_TIME,
+    		M.UPDATER,
+    		M.UPDATE_TIME,
+    		M.REMOVED
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO M_MATCH M (
+        <include refid="commonFieldSql"/>
+        )
+        values(
+        #{matchId,jdbcType=CHAR},
+        #{matchName,jdbcType=VARCHAR},
+        #{matchType,jdbcType=CHAR},
+        #{beginDate,jdbcType=DATE},
+        #{endDate,jdbcType=DATE},
+        #{departmentId,jdbcType=VARCHAR},
+        #{department,jdbcType=VARCHAR},
+        #{operatorId,jdbcType=VARCHAR},
+        #{operator,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR},
+        #{matchThemeId,jdbcType=CHAR},
+        #{creator,jdbcType=VARCHAR},
+        sysdate,
+        #{updater,jdbcType=VARCHAR},
+        sysdate,
+        #{removed,jdbcType=VARCHAR}
+        )
+
+
+        <selectKey resultType="java.lang.String" keyColumn="MATCH_ID" order="BEFORE" keyProperty="matchId">
+            SELECT SYS_GUID() FROM DUAL
+        </selectKey>
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM M_MATCH WHERE MATCH_ID IN
+        <foreach item="item" index="index" collection="list"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <update id="update">
+        UPDATE M_MATCH
+        <set>
+            <choose>
+                <when test="isDynamic == true">
+                    <if test="entity.matchName !=null and entity.matchName !='' ">
+                        MATCH_NAME=#{entity.matchName,jdbcType=VARCHAR},
+                    </if>
+                    <if test="entity.matchType !=null and entity.matchType !='' ">
+                        MATCH_TYPE=#{entity.matchType,jdbcType=CHAR},
+                    </if>
+                    <if test="entity.beginDate !=null and entity.beginDate !='' ">
+                        BEGIN_DATE=#{entity.beginDate,jdbcType=DATE},
+                    </if>
+                    <if test="entity.endDate !=null and entity.endDate !='' ">
+                        END_DATE=#{entity.endDate,jdbcType=DATE},
+                    </if>
+                    <if test="entity.departmentId !=null and entity.departmentId !='' ">
+                        DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+                    </if>
+                    <if test="entity.department !=null and entity.department !='' ">
+                        DEPARTMENT=#{entity.department,jdbcType=VARCHAR},
+                    </if>
+                    <if test="entity.operatorId !=null and entity.operatorId !='' ">
+                        OPERATOR_ID=#{entity.operatorId,jdbcType=VARCHAR},
+                    </if>
+                    <if test="entity.operator !=null and entity.operator !='' ">
+                        OPERATOR=#{entity.operator,jdbcType=VARCHAR},
+                    </if>
+
+                    <if test="entity.status !=null and entity.status !='' ">STATUS=#{entity.status,jdbcType=CHAR},</if>
+                    <if test="entity.updater != null and entity.updater != ''">
+                        UPDATER=#{entity.updater,jdbcType=VARCHAR},
+                    </if>
+                    <if test="entity.removed != null and entity.removed != ''">
+                        REMOVED=#{entity.removed,jdbcType=CHAR},
+                    </if>
+                    <if test="entity.matchThemeId != null and entity.matchThemeId != ''">
+                        MATCH_THEME_ID=#{entity.matchThemeId,jdbcType=CHAR},
+                    </if>
+                </when>
+                <otherwise>
+                    MATCH_NAME=#{entity.matchName,jdbcType=VARCHAR},
+                    MATCH_TYPE=#{entity.matchType,jdbcType=CHAR},
+                    BEGIN_DATE=#{entity.beginDate,jdbcType=DATE},
+                    END_DATE=#{entity.endDate,jdbcType=DATE},
+                    DEPARTMENT_ID=#{entity.departmentId,jdbcType=VARCHAR},
+                    DEPARTMENT=#{entity.department,jdbcType=VARCHAR},
+                    OPERATOR_ID=#{entity.operatorId,jdbcType=VARCHAR},
+                    OPERATOR=#{entity.operator,jdbcType=VARCHAR},
+                    MATCH_THEME_ID=#{entity.matchThemeId,jdbcType=CHAR},
+                    STATUS=#{entity.status,jdbcType=CHAR},
+                    UPDATER=#{entity.updater,jdbcType=VARCHAR},
+                    REMOVED=#{entity.removed,jdbcType=VARCHAR},
+                </otherwise>
+            </choose>
+            UPDATE_TIME=sysdate
+        </set>
+        <where>
+            MATCH_ID=#{entity.matchId,jdbcType=VARCHAR}
+        </where>
+    </update>
+
+    <select id="select" parameterType="Match" resultMap="matchMap">
+        SELECT<include refid="commonFieldSql"/>,MT.THEME_NAME FROM M_MATCH M
+        LEFT JOIN M_MATCH_THEME MT ON MT.MATCH_THEME_ID = M.MATCH_THEME_ID
+        <where>
+            <if test="matchId!=null and matchId!=''">
+                AND M.MATCH_ID = #{matchId}
+            </if>
+            <if test="matchName!=null and matchName!=''">
+                <bind name="matchNameParam" value="_parameter.getMatchName()+'%'"/>
+                AND M.MATCH_NAME LIKE #{matchNameParam}
+            </if>
+            <if test="matchType!=null and matchType!=''">
+                AND M.MATCH_TYPE = #{matchType}
+            </if>
+            <if test="beginDate!=null">
+                AND M.BEGIN_DATE >= #{beginDate}
+            </if>
+            <if test="endDate!=null">
+                AND M.END_DATE &lt;= #{endDate}
+            </if>
+            <if test="departmentId!=null and departmentId!=''">
+                AND M.DEPARTMENT_ID = #{departmentId}
+            </if>
+            <if test="department!=null and department!=''">
+                <bind name="param" value="_parameter.getDepartment()+'%'"/>
+                AND M.DEPARTMENT_NAME LIKE #{param}
+            </if>
+            <if test="operatorId!=null and operatorId!=''">
+                AND M.OPERATOR_ID = #{operatorId}
+            </if>
+            <if test="operator!=null and operator!=''">
+                AND M.OPERATOR = #{operator}
+            </if>
+
+            <if test="matchThemeId!=null and matchThemeId!=''">
+                AND M.MATCH_THEME_ID = #{matchThemeId}
+            </if>
+            <if test="status!=null and status!=''">
+                AND M.STATUS = #{status}
+            </if>
+            <if test="creator!=null and creator!=''">
+                AND M.CREATOR = #{creator}
+            </if>
+            <if test="updater!=null and updater!=''">
+                AND M.UPDATER = #{updater}
+            </if>
+            <if test="removed!=null and removed!=''">
+                AND M.REMOVED = #{removed}
+            </if>
+            <if test="matchTheme!=null and matchTheme.themeName!=null and matchTheme.themeName!=''">
+                <bind name="themeNameParam" value="_parameter.getMatchTheme().getThemeName()+'%'"/>
+                AND MT.THEME_NAME LIKE #{themeNameParam}
+            </if>
+        </where>
+        ORDER BY M.UPDATE_TIME DESC
+    </select>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="matchDetailMap">
+        SELECT<include refid="commonFieldSql"/>,
+        A.ATTACHMENT_ID,
+        A.ATTACH_NAME,
+        A.ATTACH_SIZE,
+        A.ATTACH_EXT_NAME,
+        A.ATTACH_TYPE,
+        A.OBJECT_ID,
+        MT.THEME_NAME,
+        MT.YEAR,
+        ATTACH_URL FROM M_MATCH M LEFT JOIN (<include refid="validAttachmentSql"/>) A ON M.MATCH_ID = A.OBJECT_ID LEFT JOIN M_MATCH_THEME MT ON MT.MATCH_THEME_ID=M.MATCH_THEME_ID
+        WHERE
+        M.MATCH_ID = #{value}
+    </select>
+
+</mapper>
